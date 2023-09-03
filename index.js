@@ -1,34 +1,47 @@
 var rollV, nameV, genderV, addressV;
 
+  function readFom() {
+    rollV = document.getElementById("roll").value;
+    nameV = document.getElementById("name").value;
+    genderV = document.getElementById("gender").value;
+    addressV = document.getElementById("address").value;
+    console.log(rollV, nameV, addressV, genderV);
+  }
 
-function readFom() {
-  rollV = document.getElementById("roll").value;
-  nameV = document.getElementById("name").value;
-  genderV = document.getElementById("gender").value;
-  addressV = document.getElementById("address").value;
-  console.log(rollV, nameV, addressV, genderV);
-}
+  function signInWithEmailAndPassword(email, password) {
+    return firebase.auth().signInWithEmailAndPassword(email, password);
+  }
 
-document.getElementById("submit").onclick = function () {
+  function signOut() {
+    return firebase.auth().signOut();
+  }
 
-  readFom();
+  document.getElementById("submit").onclick = function () {
+    readFom();
 
-  firebase
-    .database()
-    .ref("student/" + rollV)
-    .set({
-      rollNo: rollV,
-      name: nameV,
-      gender: genderV,
-      address: addressV,
-    });
- 
-  alert("Data Submitted");
-  document.getElementById("roll").value = "";
-  document.getElementById("name").value = "";
-  document.getElementById("gender").value = "";
-  document.getElementById("address").value = "";
-};
+    var user = firebase.auth().currentUser;
+    if (user) {
+      
+      firebase
+        .database()
+        .ref("student/" + rollV)
+        .set({
+          rollNo: rollV,
+          name: nameV,
+          gender: genderV,
+          address: addressV,
+        });
+
+      alert("Data Submitted");
+      document.getElementById("roll").value = "";
+      document.getElementById("name").value = "";
+      document.getElementById("gender").value = "";
+      document.getElementById("address").value = "";
+    } else {
+      
+      alert("Please sign in to submit data.");
+    }
+  };
 
 document.getElementById("read").onclick = function () {
   readFom();
