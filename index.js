@@ -1,24 +1,26 @@
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword as createUser, signInWithEmailAndPassword as signIn  } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js';
 import { auth, firestore } from './fireConfig.js'; 
-import { collection, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
+import { doc, setDoc, getDoc , deleteDoc , updateDoc } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
 
-const myCollection = collection(firestore, 'myCollectionName');
+
+const myCollectionName = 'UserInfo'; 
 var rollV, nameV, genderV, addressV;
-function readFom() {
+function readForm() {
   rollV = document.getElementById("roll").value;
   nameV = document.getElementById("name").value;
   genderV = document.getElementById("gender").value;
   addressV = document.getElementById("address").value;
   console.log(rollV, nameV, addressV, genderV);
 }
+
 function signUpWithEmailAndPassword(email, password) {
-  return createUserWithEmailAndPassword(auth, email, password);
+  return createUser(auth, email, password);
 }
 function signInWithEmailAndPassword(email, password) {
-  return signInWithEmailAndPassword(auth, email, password);
+  return signIn(auth, email, password);
 }
-function signOut() {
-  return auth.signOut();
+function signOutUser() {
+  return signOut(auth);
 }
 function toggleForms(signupActive) {
   var signupForm = document.getElementById("signup-form");
@@ -33,6 +35,7 @@ function toggleForms(signupActive) {
   }
 }
 toggleForms(true);
+
 document.getElementById("signup-submit").onclick = function (event) {
   event.preventDefault();
   var email = document.getElementById("signup-email").value;
@@ -41,12 +44,12 @@ document.getElementById("signup-submit").onclick = function (event) {
     .then((userCredential) => {
       var user = userCredential.user;
       alert("Sign up successful!");
-
       var userData = {
         email: email,
       };
-    
-      fireConfig.firestore.collection("users").doc(user.uid).set(userData)
+
+      const documentRef = doc(firestore, myCollectionName, user.uid); 
+      setDoc(documentRef, userData)
         .then(() => {
           console.log("User data stored successfully in Firestore");
         })
@@ -57,7 +60,8 @@ document.getElementById("signup-submit").onclick = function (event) {
     .catch((error) => {
       alert(error.message);
     });
-  };
+};
+
 document.getElementById("login-submit").onclick = function () {
   var email = document.getElementById("login-email").value;
   var password = document.getElementById("login-password").value;
@@ -69,8 +73,9 @@ document.getElementById("login-submit").onclick = function () {
       alert(error.message);
     });
 };
+
 document.getElementById("submit").onclick = function () {
-  readFom();
+  readForm();
   var user = auth.currentUser;
   if (user) {
     var userData = {
@@ -79,7 +84,8 @@ document.getElementById("submit").onclick = function () {
       gender: genderV,
       address: addressV,
     };
-    setDoc(myCollection, userData) 
+    const documentRef = doc(firestore, myCollectionName, user.uid); 
+    setDoc(documentRef, userData) 
       .then(() => {
         alert("Data Submitted");
         document.getElementById("roll").value = "";
@@ -94,41 +100,47 @@ document.getElementById("submit").onclick = function () {
     alert("Please sign in to submit data.");
   }
 };
-document.getElementById("read").onclick = function () {
-  readFom();
-  var user = auth.currentUser;
+async function fetchUserData() {
+  const user = auth.currentUser;
   if (user) {
-    firestore.collection("users").doc(user.uid).collection("student").doc(rollV).get()
-      .then((doc) => {
-        if (doc.exists) {
-          var data = doc.data();
-          document.getElementById("roll").value = data.rollNo;
-          document.getElementById("name").value = data.name;
-          document.getElementById("gender").value = data.gender;
-          document.getElementById("address").value = data.address;
-        } else {
-          alert("Data not found for the given roll number.");
-        }
-      })
-      .catch((error) => {
-        alert("Error reading data: " + error.message);
-      });
+    const userDocRef = doc(firestore, myCollectionName, user.uid); 
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        var data = docSnap.data();
+        document.getElementById("roll").value = data.rollNo;
+        document.getElementById("name").value = data.name;
+        document.getElementById("gender").value = data.gender;
+        document.getElementById("address").value = data.address;
+      } else {
+        alert("Data not found for the current user.");
+      }
+    } catch (error) {
+      console.error("Error reading data:", error);
+      alert("Error reading data: " + error.message);
+    }
   } else {
     alert("Please sign in to read data.");
   }
+}
+document.getElementById("read").onclick = function () {
+  console.log("Fetching data for the current user.");
+  fetchUserData();
 };
 document.getElementById("update").onclick = function () {
-  readFom();
+  readForm(); 
   var user = auth.currentUser;
   if (user) {
     var userData = {
+      rollNo: rollV,
       name: nameV,
       gender: genderV,
       address: addressV,
     };
-    firestore.collection("users").doc(user.uid).collection("student").doc(rollV).update(userData)
+    const documentRef = doc(firestore, myCollectionName, user.uid); 
+    updateDoc(documentRef, userData) 
       .then(() => {
-        alert("Data Update");
+        alert("Data Updated");
         document.getElementById("roll").value = "";
         document.getElementById("name").value = "";
         document.getElementById("gender").value = "";
@@ -141,12 +153,13 @@ document.getElementById("update").onclick = function () {
     alert("Please sign in to update data.");
   }
 };
-document.getElementById("delete").onclick = function () {
-  readFom();
 
+document.getElementById("delete").onclick = function () {
+  readForm();
   var user = auth.currentUser;
   if (user) {
-    firestore.collection("users").doc(user.uid).collection("student").doc(rollV).delete()
+    const documentRef = doc(firestore, myCollectionName, user.uid); 
+    deleteDoc(documentRef) 
       .then(() => {
         alert("Data Deleted");
         document.getElementById("roll").value = "";
@@ -161,6 +174,7 @@ document.getElementById("delete").onclick = function () {
     alert("Please sign in to delete data.");
   }
 };
+
 document.getElementById("signup-link").onclick = function () {
   toggleForms(true);
 };
