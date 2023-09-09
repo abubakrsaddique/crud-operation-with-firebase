@@ -1,12 +1,18 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyCAxPrg7YiSRwW3T5g3bHPbhii2_KfAJ0I",
-    authDomain: "crud-operation-fa612.firebaseapp.com",
-    databaseURL: "https://crud-operation-fa612-default-rtdb.firebaseio.com",
-    projectId: "crud-operation-fa612",
-    storageBucket: "crud-operation-fa612.appspot.com",
-    messagingSenderId: "396509799159",
-    appId: "1:396509799159:web:4f79d86852946aa8c1e9f2",
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
 
-  // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+const firebaseConfig = {
+  apiKey: "AIzaSyCgVAC0cK5XkVBaeP6WXEDGAzDpidlNdsc",
+  authDomain: "crud-operation-2-366a5.firebaseapp.com",
+  projectId: "crud-operation-2-366a5",
+  storageBucket: "crud-operation-2-366a5.appspot.com",
+  messagingSenderId: "251955448970",
+  appId: "1:251955448970:web:fd70bf4325a8463b37b173"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+export { auth, firestore };
